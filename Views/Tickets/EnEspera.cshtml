@@ -1,0 +1,32 @@
+﻿@model IEnumerable<Parking.CoreMvc.Models.Ticket>
+
+<h2>Tickets en espera</h2>
+
+@if (TempData["Mensaje"] != null)
+{
+    <p>@TempData["Mensaje"]</p>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Placa</th>
+            <th>Hora de entrada</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>@t.Id</td>
+                <td>@t.Placa</td>
+                <td>@t.HoraEntrada</td>
+                <td>
+                    <a asp-action="Reasignar" asp-route-id="@t.Id">Asignar plaza</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

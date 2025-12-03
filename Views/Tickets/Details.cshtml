@@ -1,0 +1,15 @@
+﻿@model Parking.CoreMvc.Models.Ticket
+
+<h2>Detalle de Ticket</h2>
+
+<p>Id: @Model.Id</p>
+<p>Placa: @Model.Placa</p>
+<p>Tipo: @Model.TipoVehiculo</p>
+<p>Hora de entrada: @Model.HoraEntrada</p>
+<p>Estado: @Model.Estado</p>
+<p>Plaza: @(Model.PlazaId.HasValue? Model.PlazaId.ToString() : "En espera")</p>
+
+@if (Model.Estado == Parking.CoreMvc.Models.EstadoTicket.Activo)
+{
+    <a asp-action="Close" asp-route-id="@Model.Id">Procesar salida</a>
+}

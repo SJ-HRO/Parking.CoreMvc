@@ -1,0 +1,70 @@
+﻿@model Parking.CoreMvc.Services.AnalyticsSummaryDto
+
+@{
+    ViewData["Title"] = "Panel de analítica";
+}
+
+<div class="container mt-4">
+    <h2>Analítica del parqueadero</h2>
+
+    @if (Model.PlazasTotales == 0)
+    {
+        <p>No hay datos suficientes en el histórico. Deja correr el sistema un tiempo para generar registros.</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">Plazas totales</h6>
+                        <h3>@Model.PlazasTotales</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">Ocupación promedio</h6>
+                        <h3>@(Model.OcupacionPromedioGlobal * 100.0).ToString("0.0") %</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">Máximo de plazas ocupadas</h6>
+                        <h3>@Model.MaximoOcupadas</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">Plazas bloqueables (sugeridas)</h6>
+                        <h3>@Model.PlazasBloqueablesSugeridas</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4>Horas pico (top 5)</h4>
+        <table class="table table-striped table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Hora</th>
+                    <th>Ocupación promedio</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var h in Model.HorasPico)
+                {
+                    <tr>
+                        <td>@h.Hora:00</td>
+                        <td>@(h.OcupacionPromedio * 100.0).ToString("0.0") %</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

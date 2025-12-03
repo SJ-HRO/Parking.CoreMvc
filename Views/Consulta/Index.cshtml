@@ -1,0 +1,34 @@
+﻿@model Parking.CoreMvc.Models.ConsultaTicketViewModel
+
+<h2>Consulta de Ticket</h2>
+
+<form asp-action="Index" method="post">
+    <div>
+        <label>Número de Ticket</label>
+        <input asp-for="TicketId" />
+    </div>
+    <p>o</p>
+    <div>
+        <label>Placa</label>
+        <input asp-for="Placa" />
+    </div>
+
+    <button type="submit">Consultar</button>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.Mensaje))
+{
+    <p>@Model.Mensaje</p>
+}
+
+@if (Model.Ticket != null)
+{
+    <hr />
+    <h3>Resultado</h3>
+    <p>Ticket: @Model.Ticket.Id</p>
+    <p>Placa: @Model.Ticket.Placa</p>
+    <p>Entrada: @Model.Ticket.HoraEntrada</p>
+    <p>Salida: @Model.Ticket.HoraSalida</p>
+    <p>Estado: @Model.Ticket.Estado</p>
+    <p>Monto: @Model.Ticket.MontoCalculado?.ToString("C")</p>
+}

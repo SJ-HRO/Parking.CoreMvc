@@ -1,0 +1,14 @@
+﻿@model Parking.CoreMvc.Models.Ticket
+
+<h2>Salida de vehículo</h2>
+
+<p>Ticket: @Model.Id</p>
+<p>Placa: @Model.Placa</p>
+<p>Entrada: @Model.HoraEntrada</p>
+<p>Salida provisional: @Model.HoraSalida</p>
+<p>Monto calculado: @Model.MontoCalculado?.ToString("C")</p>
+
+<form asp-action="CloseConfirmed" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit">Confirmar cierre</button>
+</form>

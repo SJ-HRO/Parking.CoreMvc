@@ -1,0 +1,52 @@
+﻿@model Parking.CoreMvc.Models.DashboardViewModel
+
+<div class="container mt-4">
+    <h2 class="mb-4">Panel de ocupación</h2>
+
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Plazas totales</h6>
+                    <h3>@Model.TotalPlazas</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Ocupadas</h6>
+                    <h3>@Model.Ocupadas</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Libres</h6>
+                    <h3>@Model.Libres</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Tickets activos</h6>
+                    <h3>@Model.TicketsActivos</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-controller="Tickets" asp-action="Create" class="btn btn-primary me-2">
+            Registrar entrada
+        </a>
+        <a asp-controller="Tickets" asp-action="Index" class="btn btn-outline-secondary">
+            Ver tickets
+        </a>
+    </div>
+</div>
