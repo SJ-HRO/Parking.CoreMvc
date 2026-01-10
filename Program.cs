@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Parking.CoreMvc.Data;
 using Parking.CoreMvc.Models;
 using Parking.CoreMvc.Services;
+using Parking.CoreMvc.Services.Tariffs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,16 +14,26 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
 })
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
-
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddControllersWithViews();
+
 builder.Services.AddHostedService<OccupancySnapshotService>();
+
+// DataStore (como está)
 builder.Services.AddScoped<IDataStore, EfDataStore>();
+
+// Lógica de negocio
 builder.Services.AddScoped<IAsignadorPlazas, AsignadorPlazas>();
-builder.Services.AddScoped<ITarificador, Tarificador>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IComparisonService, ComparisonService>();
+
+// Tarificación con Strategy + Factory
+builder.Services.AddScoped<ITariffStrategy, FractionTariffStrategy>();
+builder.Services.AddScoped<ITariffStrategy, HourlyTariffStrategy>();
+builder.Services.AddScoped<ITariffStrategyFactory, TariffStrategyFactory>();
+builder.Services.AddScoped<ITarificador, Tarificador>();
 
 var app = builder.Build();
 
@@ -46,8 +57,6 @@ app.MapControllerRoute(
 
 app.MapRazorPages();
 
-
 await IdentitySeed.SeedAsync(app.Services);
 
 app.Run();
-

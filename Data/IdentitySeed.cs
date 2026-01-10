@@ -12,16 +12,19 @@ namespace Parking.CoreMvc.Data
 
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
             string[] roles = { "Administrador", "Operador" };
 
             foreach (var role in roles)
             {
                 if (!await roleManager.RoleExistsAsync(role))
-                {
                     await roleManager.CreateAsync(new IdentityRole(role));
-                }
             }
+
+            // Passwords por config
+            var adminPwd = config["Seed:AdminPassword"] ?? Environment.GetEnvironmentVariable("SEED_ADMIN_PASSWORD") ?? "Admin123$";
+            var operPwd = config["Seed:OperadorPassword"] ?? Environment.GetEnvironmentVariable("SEED_OPERADOR_PASSWORD") ?? "Operador123$";
 
             var adminEmail = "admin@parqueadero.com";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
@@ -35,14 +38,9 @@ namespace Parking.CoreMvc.Data
                     EmailConfirmed = true
                 };
 
-                //contraseña
-                var result = await userManager.CreateAsync(adminUser, "Admin123$");
-
-                //email admin = admin@parqueadero.com
+                var result = await userManager.CreateAsync(adminUser, adminPwd);
                 if (result.Succeeded)
-                {
                     await userManager.AddToRoleAsync(adminUser, "Administrador");
-                }
             }
 
             var operadorEmail = "operador@parqueadero.com";
@@ -57,24 +55,16 @@ namespace Parking.CoreMvc.Data
                     EmailConfirmed = true
                 };
 
-                var resultOperador = await userManager.CreateAsync(operadorUser, "Operador123$");
-
+                var resultOperador = await userManager.CreateAsync(operadorUser, operPwd);
                 if (resultOperador.Succeeded)
-                {
                     await userManager.AddToRoleAsync(operadorUser, "Operador");
-                }
             }
 
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             if (!await db.Zonas.AnyAsync())
             {
-                var zonaA = new Zona
-                {
-                    Nombre = "Zona A",
-                    Capacidad = 20
-                };
-
+                var zonaA = new Zona { Nombre = "Zona A", Capacidad = 20 };
                 db.Zonas.Add(zonaA);
 
                 for (int i = 1; i <= 10; i++)
@@ -149,7 +139,6 @@ namespace Parking.CoreMvc.Data
             }
 
             await db.SaveChangesAsync();
-
         }
     }
 }

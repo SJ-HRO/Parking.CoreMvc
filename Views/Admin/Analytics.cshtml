@@ -7,6 +7,11 @@
 <div class="container mt-4">
     <h2>Analítica del parqueadero</h2>
 
+    <div class="mb-3">
+        <a class="btn btn-outline-primary" href="/Admin/Compare">Comparar snapshots</a>
+        <a class="btn btn-outline-success" href="/Admin/CompareLive">Histórico vs Actual</a>
+    </div>
+
     @if (Model.PlazasTotales == 0)
     {
         <p>No hay datos suficientes en el histórico. Deja correr el sistema un tiempo para generar registros.</p>
@@ -22,14 +27,16 @@
                     </div>
                 </div>
             </div>
+
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
                         <h6 class="text-muted">Ocupación promedio</h6>
-                        <h3>@(Model.OcupacionPromedioGlobal * 100.0).ToString("0.0") %</h3>
+                        <h3>@(((Model.OcupacionPromedioGlobal * 100.0)).ToString("0.0"))%</h3>
                     </div>
                 </div>
             </div>
+
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
@@ -38,6 +45,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
@@ -61,7 +69,7 @@
                 {
                     <tr>
                         <td>@h.Hora:00</td>
-                        <td>@(h.OcupacionPromedio * 100.0).ToString("0.0") %</td>
+                        <td>@(((h.OcupacionPromedio * 100.0)).ToString("0.0"))%</td>
                     </tr>
                 }
             </tbody>

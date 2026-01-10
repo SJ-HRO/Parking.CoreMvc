@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Parking.CoreMvc.Data;
-using Parking.CoreMvc.Models;
 
 namespace Parking.CoreMvc.Services
 {
     public class HoraPicoDto
     {
-        public int Hora { get; set; }
-        public double OcupacionPromedio { get; set; } // 0-1
+        public int Hora { get; set; }                 
+        public double OcupacionPromedio { get; set; } 
     }
 
     public class AnalyticsSummaryDto
     {
-        public double OcupacionPromedioGlobal { get; set; } // 0-1
+        public double OcupacionPromedioGlobal { get; set; } 
         public int MaximoOcupadas { get; set; }
         public int PlazasTotales { get; set; }
         public int PlazasBloqueablesSugeridas { get; set; }
@@ -31,52 +26,85 @@ namespace Parking.CoreMvc.Services
     public class AnalyticsService : IAnalyticsService
     {
         private readonly ApplicationDbContext _db;
+        private readonly ILogger<AnalyticsService> _logger;
 
-        public AnalyticsService(ApplicationDbContext db)
+        public AnalyticsService(ApplicationDbContext db, ILogger<AnalyticsService> logger)
         {
             _db = db;
+            _logger = logger;
         }
 
         public async Task<AnalyticsSummaryDto> GetResumenAsync(double toleranciaOcupacion = 0.85)
         {
-            var registros = await _db.HistoricoOcupaciones.ToListAsync();
+            toleranciaOcupacion = NormalizeTolerancia(toleranciaOcupacion);
 
-            if (!registros.Any())
+            _logger.LogInformation("Generando resumen analítico con tolerancia={tol}", toleranciaOcupacion);
+
+            var plazasTotales = await _db.Plazas.AsNoTracking().CountAsync();
+
+            var historico = await _db.HistoricoOcupaciones
+                .AsNoTracking()
+                .OrderBy(h => h.Momento)
+                .ToListAsync();
+
+            if (plazasTotales == 0 || historico.Count == 0)
             {
-                return new AnalyticsSummaryDto();
+                _logger.LogWarning("No hay datos suficientes. PlazasTotales={plazas}, HistoricoCount={count}",
+                    plazasTotales, historico.Count);
+
+                return new AnalyticsSummaryDto
+                {
+                    PlazasTotales = plazasTotales,
+                    OcupacionPromedioGlobal = 0,
+                    MaximoOcupadas = 0,
+                    PlazasBloqueablesSugeridas = 0,
+                    HorasPico = new List<HoraPicoDto>()
+                };
             }
 
-            var plazasTotales = registros.Max(r => r.PlazasTotales);
-            var promedioOcupacionGlobal = registros.Average(r => (double)r.PlazasOcupadas / plazasTotales);
-            var maxOcupadas = registros.Max(r => r.PlazasOcupadas);
-            var maxOcupacionRelativa = (double)maxOcupadas / plazasTotales;
-            int plazasBloqueables = 0;
+            var ocupPromGlobal = historico.Average(h =>
+                h.PlazasTotales == 0 ? 0 : (double)h.PlazasOcupadas / h.PlazasTotales);
 
-            if (maxOcupacionRelativa < toleranciaOcupacion)
-            {
-                var plazasPermitidas = (int)Math.Round(plazasTotales * toleranciaOcupacion);
-                plazasBloqueables = plazasTotales - plazasPermitidas;
-                if (plazasBloqueables < 0) plazasBloqueables = 0;
-            }
-            var horasPico = registros
-                .GroupBy(r => r.Hora)
+            var maxOcupadas = historico.Max(h => h.PlazasOcupadas);
+
+            //Horas pico top 5 por ocupación promedio
+            var horasPico = historico
+                .GroupBy(h => h.Momento.Hour)
                 .Select(g => new HoraPicoDto
                 {
                     Hora = g.Key,
-                    OcupacionPromedio = g.Average(r => (double)r.PlazasOcupadas / plazasTotales)
+                    OcupacionPromedio = g.Average(x =>
+                        x.PlazasTotales == 0 ? 0 : (double)x.PlazasOcupadas / x.PlazasTotales)
                 })
-                .OrderByDescending(h => h.OcupacionPromedio)
+                .OrderByDescending(x => x.OcupacionPromedio)
                 .Take(5)
                 .ToList();
+
+            var plazasMinimasParaTol = (int)Math.Ceiling(toleranciaOcupacion * plazasTotales);
+            var bloqueables = Math.Max(0, plazasTotales - plazasMinimasParaTol);
+
+            _logger.LogInformation(
+                "Resumen: PlazasTotales={plazas}, OcupPromGlobal={prom:0.000}, MaxOcupadas={max}, Bloqueables={blk}",
+                plazasTotales, ocupPromGlobal, maxOcupadas, bloqueables);
 
             return new AnalyticsSummaryDto
             {
                 PlazasTotales = plazasTotales,
-                OcupacionPromedioGlobal = promedioOcupacionGlobal,
+                OcupacionPromedioGlobal = ocupPromGlobal,
                 MaximoOcupadas = maxOcupadas,
-                PlazasBloqueablesSugeridas = plazasBloqueables,
+                PlazasBloqueablesSugeridas = bloqueables,
                 HorasPico = horasPico
             };
+        }
+
+        private double NormalizeTolerancia(double tol)
+        {
+            if (double.IsNaN(tol) || double.IsInfinity(tol) || tol <= 0 || tol > 1)
+            {
+                _logger.LogWarning("Tolerancia inválida ({tol}). Se usará 0.85.", tol);
+                return 0.85;
+            }
+            return tol;
         }
     }
 }
