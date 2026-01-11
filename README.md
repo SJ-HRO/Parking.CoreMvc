@@ -13,7 +13,7 @@ Incluye operación completa de tickets y un módulo de **analítica** basado en 
     - **Tabla B:** estado actual calculado desde `dbo.Plazas` + `dbo.Tickets`
   - Muestra deltas (ocupadas, libres, tickets activos, % ocupación) y evaluación contra umbral.
 
-- **Proyecto deployado:** (Falta deployar lptm)
+- **Proyecto deployado:** http://localhost:8080/ (Se usó IIS ya que otros servicios de deploy requieren pagos o tiene paywalls al final, seguimos buscando opciones)
 - **Mejores prácticas (taller):**
   - Logging con `ILogger<T>` en `AnalyticsService` y `ComparisonService`
   - Consultas de lectura con `AsNoTracking()` y validaciones defensivas (umbral/tolerancia)
