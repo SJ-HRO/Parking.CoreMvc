@@ -21,21 +21,24 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddHostedService<OccupancySnapshotService>();
 
-// DataStore (como está)
 builder.Services.AddScoped<IDataStore, EfDataStore>();
 
-// Lógica de negocio
 builder.Services.AddScoped<IAsignadorPlazas, AsignadorPlazas>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IComparisonService, ComparisonService>();
 
-// Tarificación con Strategy + Factory
 builder.Services.AddScoped<ITariffStrategy, FractionTariffStrategy>();
 builder.Services.AddScoped<ITariffStrategy, HourlyTariffStrategy>();
 builder.Services.AddScoped<ITariffStrategyFactory, TariffStrategyFactory>();
 builder.Services.AddScoped<ITarificador, Tarificador>();
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
 
 if (!app.Environment.IsDevelopment())
 {
@@ -51,11 +54,14 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllers();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapRazorPages();
+
 
 await IdentitySeed.SeedAsync(app.Services);
 
